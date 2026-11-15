@@ -1,0 +1,123 @@
+// ==============================================================================
+// Power BI DAX Measures Specification
+// Data Model: Star Schema (fact_sales, fact_sales_targets, dim_*)
+// ==============================================================================
+
+// --- REVENUE & PROFITABILITY MEASURES ---
+
+[Total Gross Revenue] = 
+SUM(fact_sales[gross_revenue])
+
+[Total Discounts] = 
+SUM(fact_sales[discount_amount])
+
+[Net Sales Revenue] = 
+SUM(fact_sales[net_revenue])
+
+[Total COGS] = 
+SUM(fact_sales[cogs])
+
+[Gross Profit] = 
+[Net Sales Revenue] - [Total COGS]
+
+[Gross Margin %] = 
+DIVIDE([Gross Profit], [Net Sales Revenue], 0)
+
+[Total Orders] = 
+DISTINCTCOUNT(fact_sales[order_id])
+
+[Average Order Value] = 
+DIVIDE([Net Sales Revenue], [Total Orders], 0)
+
+[Total Units Sold] = 
+SUM(fact_sales[units_sold])
+
+
+// --- TIME INTELLIGENCE & GROWTH MEASURES ---
+
+[YTD Net Sales] = 
+TOTALYTD([Net Sales Revenue], dim_date[full_date])
+
+[Prior Month Net Sales] = 
+CALCULATE(
+    [Net Sales Revenue],
+    DATEADD(dim_date[full_date], -1, MONTH)
+)
+
+[MoM Sales Growth %] = 
+DIVIDE(
+    [Net Sales Revenue] - [Prior Month Net Sales],
+    [Prior Month Net Sales],
+    0
+)
+
+[Prior Year Net Sales] = 
+CALCULATE(
+    [Net Sales Revenue],
+    SAMEPERIODLASTYEAR(dim_date[full_date])
+)
+
+[YoY Sales Growth %] = 
+DIVIDE(
+    [Net Sales Revenue] - [Prior Year Net Sales],
+    [Prior Year Net Sales],
+    0
+)
+
+[Rolling 3-Month Sales] = 
+CALCULATE(
+    [Net Sales Revenue],
+    DATESINPERIOD(dim_date[full_date], MAX(dim_date[full_date]), -3, MONTH)
+)
+
+
+// --- BUDGET VS ACTUAL VARIANCE MEASURES ---
+
+[Target Revenue] = 
+SUM(fact_sales_targets[target_revenue])
+
+[Target Variance $] = 
+[Net Sales Revenue] - [Target Revenue]
+
+[Target Variance %] = 
+DIVIDE([Target Variance $], [Target Revenue], 0)
+
+[Quota Attainment %] = 
+DIVIDE([Net Sales Revenue], [Target Revenue], 0)
+
+[Budget Health Status] = 
+SWITCH(
+    TRUE(),
+    [Quota Attainment %] >= 1.00, "🟢 Exceeded",
+    [Quota Attainment %] >= 0.90, "🟡 Within 10% Budget",
+    "🔴 Budget Deficit"
+)
+
+
+// --- OPERATIONAL & CUSTOMER QUALITY MEASURES ---
+
+[Returned Orders Count] = 
+CALCULATE(
+    COUNTROWS(fact_sales),
+    fact_sales[is_returned] = 1
+)
+
+[Total Return Value] = 
+SUM(fact_sales[return_amount])
+
+[Return Rate %] = 
+DIVIDE([Returned Orders Count], COUNTROWS(fact_sales), 0)
+
+[Active Customer Count] = 
+DISTINCTCOUNT(fact_sales[customer_id])
+
+[Repeat Customers Count] = 
+COUNTROWS(
+    FILTER(
+        VALUES(fact_sales[customer_id]),
+        CALCULATE(DISTINCTCOUNT(fact_sales[order_id])) > 1
+    )
+)
+
+[Repeat Customer Ratio %] = 
+DIVIDE([Repeat Customers Count], [Active Customer Count], 0)

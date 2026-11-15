@@ -1,0 +1,17 @@
+{
+  "kpi_summary": {
+    "gross_revenue": 464468894.36,
+    "net_sales_revenue": 421383936.79,
+    "total_units_sold": 100877,
+    "average_order_value": 16402.4,
+    "gross_margin_pct": 51.18,
+    "total_orders": 26667,
+    "total_active_customers": 1200,
+    "repeat_customer_rate_pct": 100.0,
+    "product_return_rate_pct": 3.34,
+    "total_budget_revenue": 98479028.58,
+    "budget_variance_dollar": 322904908.21,
+    "quota_attainment_pct": 427.89,
+    "top_decile_revenue_concentration_pct": 16.4
+  }
+}
